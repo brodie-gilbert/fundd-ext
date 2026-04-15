@@ -32,6 +32,8 @@
     .hInfo small{ color:#94a3b8;display:block;font-size:.75rem; }
     #logoutBtn{ background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;transition:background .2s; }
     #logoutBtn:hover{ background:rgba(255,255,255,.2); }
+    #changePwBtn{ background:transparent;border:1px solid rgba(255,255,255,.2);color:#fff;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.82rem;transition:background .2s; }
+    #changePwBtn:hover{ background:rgba(255,255,255,.1); }
 
     /* ── PAGES ── */
     .page{ display:none; }
@@ -195,9 +197,21 @@
       <strong id="hName"></strong>
       <small id="hEmail"></small>
     </div>
+    <button id="changePwBtn" onclick="openChangePw()">🔑 Change Password</button>
     <button class="btn" id="logoutBtn" onclick="logout()">Sign out</button>
   </div>
 </header>
+
+<div class="modal-overlay" id="changePwModal">
+  <div class="modal" style="max-width:420px;">
+    <h2>Change Password</h2>
+    <div class="err-msg" id="changePwErr"></div>
+    <div class="field"><label>Current Password</label><input type="password" id="cpCurrent" placeholder="••••••••"/></div>
+    <div class="field"><label>New Password</label><input type="password" id="cpNew" placeholder="Min 4 characters"/></div>
+    <div class="field"><label>Confirm New Password</label><input type="password" id="cpConfirm" onkeydown="if(event.key==='Enter')submitChangePw()"/></div>
+    <div class="modal-actions"><button class="btn btn-ghost" onclick="closeChangePw()">Cancel</button><button class="btn btn-primary" style="width:auto;" onclick="submitChangePw()">Update Password</button></div>
+  </div>
+</div>
 
 <!-- ═══ LOGIN ═══ -->
 <div id="loginPage" class="page active">
@@ -772,6 +786,9 @@ function login(){
   ls.set('fundd_user', user);
   enterDash();
 }
+function openChangePw(){document.getElementById('cpCurrent').value='';document.getElementById('cpNew').value='';document.getElementById('cpConfirm').value='';document.getElementById('changePwErr').style.display='none';document.getElementById('changePwModal').classList.add('open');setTimeout(()=>document.getElementById('cpCurrent').focus(),100);}
+function closeChangePw(){document.getElementById('changePwModal').classList.remove('open');}
+function submitChangePw(){const err=document.getElementById('changePwErr');const cur=document.getElementById('cpCurrent').value;const nw=document.getElementById('cpNew').value;const conf=document.getElementById('cpConfirm').value;err.style.display='none';if(!cur){showErr(err,'Enter your current password.');return;}const stored=passwordFor(user.email);if(cur!==stored){showErr(err,'Current password is incorrect.');return;}if(nw.length<4){showErr(err,'Min 4 characters.');return;}if(nw!==conf){showErr(err,'Passwords do not match.');return;}const pws=getPasswords().filter(p=>p.email!==user.email);pws.push({email:user.email,password:nw});savePasswords(pws);closeChangePw();showToast('✅ Password updated');}
 function logout(){
   if(clockedIn) doClockOut(true);
   clearInterval(clockInterval);
